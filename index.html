@@ -27,9 +27,9 @@ select{width:100%;font-size:1rem;padding:12px;border:2px solid #d8d7d2;border-ra
 <main>
 <div class="ann" id="ann"><h2>📢 ADM Activity, Nov 3, 2026</h2><p><b>Face-to-face classes are suspended due to high heat index.</b></p>
 <ol><li>Enter your <b>name</b> and <b>section</b>.</li><li>Choose your <b>grade level</b> and <b>subject</b>.</li><li>Answer honestly, then tap <b>Submit</b>.</li></ol>
-<p><b>Proof required:</b><br>📸 a photo of yourself answering<br>📱 a screenshot of your result card<br>Send both to our GC <b>before 12:00 noon</b>.</p>
+<p><b>Proof required:</b><br>📸 a photo of yourself answering<br>📱 a screenshot of your result card<br>Send both to our GC <b>before 3:00 PM</b>.</p>
 <div class="cd" id="cd"></div></div>
-<div class="closed" id="closed" style="display:none">This reviewer closed at 12:00 noon, November 3, 2026.</div>
+<div class="closed" id="closed" style="display:none">This reviewer closed at 3:00 PM, November 3, 2026.</div>
 <div id="app"><div class="card"><label class="f" for="nm">Name</label><input type="text" id="nm" autocomplete="name">
 <label class="f" for="gr">Grade Level</label><select id="gr"><option value="">— Choose grade level —</option><option>Grade 11</option><option>Grade 12</option></select>
 <label class="f" for="sj">Subject</label><select id="sj" disabled><option value="">— Choose grade level first —</option></select>
@@ -52,9 +52,9 @@ document.getElementById("info").textContent=id?ITEMS.length+" items · "+new Set
 function render(){let h="",cur="";ITEMS.forEach((it,i)=>{if(it.t!==cur){cur=it.t;h+='<h2 class="sec">'+esc(cur)+'</h2>'}
 h+='<div class="card" id="c'+i+'"><p class="q">'+(i+1)+'. '+esc(it.q)+'</p>'+it.c.map((c,j)=>'<label class="opt" id="o'+i+'_'+j+'"><input type="radio" name="q'+i+'" value="'+j+'"> <span><b>'+L[j]+'.</b> '+esc(c)+'</span></label>').join("")+'<div class="exp" id="e'+i+'"></div></div>'});qs.innerHTML=h}
 load("");
-const DEADLINE=Date.UTC(2026,10,3,4,0,0);
+const DEADLINE=Date.UTC(2026,10,3,7,0,0);
 function closedNow(){if(Date.now()<DEADLINE)return false;document.getElementById("app").style.display="none";document.getElementById("cd").style.display="none";document.getElementById("closed").style.display="block";qs.innerHTML="";return true}
-function tick(){if(closedNow())return;const m=Math.ceil((DEADLINE-Date.now())/60000);document.getElementById("cd").textContent="Closes at 12:00 noon today, ⏰ "+Math.floor(m/60)+"h "+(m%60)+"m left"}
+function tick(){if(closedNow())return;const m=Math.ceil((DEADLINE-Date.now())/60000);document.getElementById("cd").textContent="Closes at 3:00 PM today, ⏰ "+Math.floor(m/60)+"h "+(m%60)+"m left"}
 tick();setInterval(tick,15000);
 document.getElementById("submit").onclick=()=>{if(closedNow()){window.scrollTo(0,0);return}const nm=document.getElementById("nm").value.trim(),sc=document.getElementById("sec").value.trim(),msg=document.getElementById("msg");
 if(!nm||!sc||!gr.value||!SID){msg.textContent="Please enter your name, grade level, subject and section first.";window.scrollTo(0,0);return}
