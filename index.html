@@ -27,7 +27,7 @@ select{width:100%;font-size:1rem;padding:12px;border:2px solid #d8d7d2;border-ra
 <main>
 <div class="ann" id="ann"><h2>📢 ADM Activity, Nov 3, 2026</h2><p><b>Face-to-face classes are suspended due to high heat index.</b></p>
 <ol><li>Enter your <b>name</b> and <b>section</b>.</li><li>Choose your <b>grade level</b> and <b>subject</b>.</li><li>Answer honestly, then tap <b>Submit</b>.</li></ol>
-<p><b>Proof required:</b><br>📸 a photo of yourself answering<br>📱 a screenshot of your result card<br>Send both to our GC <b>before 3:00 PM</b>.</p>
+<p><b>Proof required:</b><br>📸 a photo of yourself answering<br>📱 a screenshot of your result card<br>Send both to our GC <b>before 3:00 PM</b>. One submission per subject, no retake.</p>
 <div class="cd" id="cd"></div></div>
 <div class="closed" id="closed" style="display:none">This reviewer closed at 3:00 PM, November 3, 2026.</div>
 <div id="app"><div class="card"><label class="f" for="nm">Name</label><input type="text" id="nm" autocomplete="name">
@@ -35,7 +35,7 @@ select{width:100%;font-size:1rem;padding:12px;border:2px solid #d8d7d2;border-ra
 <label class="f" for="sj">Subject</label><select id="sj" disabled><option value="">— Choose grade level first —</option></select>
 <label class="f" for="sec">Section</label><input type="text" id="sec"><p class="note" id="info"></p></div>
 <div id="result"></div><div id="qs"></div>
-<div class="card" id="bar" style="display:none"><div id="msg" class="err"></div><button id="submit">Submit answers</button><button id="retake" style="display:none">Retake</button></div>
+<div class="card" id="bar" style="display:none"><div id="msg" class="err"></div><button id="submit">Submit answers</button></div>
 </div>
 <p class="note">Reviewer by Sir Raymart Valbarez. When you submit, your score is sent to your teacher.<br>Take a screenshot of your result card and send it to your teacher.</p>
 </main>
@@ -46,8 +46,8 @@ const L="ABCD",qs=document.getElementById("qs"),gr=document.getElementById("gr")
 function H(t){let x=0x811c9dc5;for(const ch of new TextEncoder().encode(t)){x=Math.imul(x^ch,0x01000193)>>>0}return x.toString(16).padStart(8,"0")}
 function esc(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
 gr.onchange=()=>{const g=gr.value;sj.innerHTML='<option value="">'+(g?'— Choose subject —':'— Choose grade level first —')+'</option>'+Object.keys(SUBJ).filter(k=>SUBJ[k].g===g).map(k=>'<option value="'+k+'">'+esc(SUBJ[k].n)+'</option>').join("");sj.disabled=!g;load("")};
-sj.onchange=()=>{if(closedNow())return;load(sj.value)};
-function load(id){SID=id;ITEMS=id?SUBJ[id].items:[];document.getElementById("result").innerHTML="";document.getElementById("bar").style.display=id?"block":"none";document.getElementById("submit").style.display="block";document.getElementById("retake").style.display="none";
+sj.onchange=()=>{if(closedNow())return;load(sj.value);if(sj.value&&isDone(sj.value))lockOut()};
+function load(id){SID=id;ITEMS=id?SUBJ[id].items:[];document.getElementById("result").innerHTML="";document.getElementById("bar").style.display=id?"block":"none";document.getElementById("submit").style.display="block";
 document.getElementById("info").textContent=id?ITEMS.length+" items · "+new Set(ITEMS.map(x=>x.t)).size+" topics":"Choose your grade level and subject to start.";qs.style.display="";render()}
 function render(){let h="",cur="";ITEMS.forEach((it,i)=>{if(it.t!==cur){cur=it.t;h+='<h2 class="sec">'+esc(cur)+'</h2>'}
 h+='<div class="card" id="c'+i+'"><p class="q">'+(i+1)+'. '+esc(it.q)+'</p>'+it.c.map((c,j)=>'<label class="opt" id="o'+i+'_'+j+'"><input type="radio" name="q'+i+'" value="'+j+'"> <span><b>'+L[j]+'.</b> '+esc(c)+'</span></label>').join("")+'<div class="exp" id="e'+i+'"></div></div>'});qs.innerHTML=h}
@@ -59,7 +59,7 @@ tick();setInterval(tick,15000);
 document.getElementById("submit").onclick=()=>{if(closedNow()){window.scrollTo(0,0);return}const nm=document.getElementById("nm").value.trim(),sc=document.getElementById("sec").value.trim(),msg=document.getElementById("msg");
 if(!nm||!sc||!gr.value||!SID){msg.textContent="Please enter your name, grade level, subject and section first.";window.scrollTo(0,0);return}
 let un=[];ITEMS.forEach((it,i)=>{if(!document.querySelector('input[name=q'+i+']:checked'))un.push(i+1)});
-if(un.length&&!confirm(un.length+" item(s) unanswered. Submit anyway?"))return;msg.textContent="";
+if(un.length&&!confirm(un.length+" item(s) unanswered. Submit anyway?"))return;msg.textContent="Checking…";const bt=document.getElementById("submit");bt.disabled=true;chk(nm,SUBJ[SID].n).then(dup=>{bt.disabled=false;if(dup){msg.textContent="You already submitted this subject. Only one submission per subject, no retake.";markDone(SID);lockOut();return}msg.textContent="";markDone(SID);fin()});function fin(){
 let score=0,per={};ITEMS.forEach((it,i)=>{per[it.t]=per[it.t]||[0,0];per[it.t][1]++;const s=document.querySelector('input[name=q'+i+']:checked'),v=s?+s.value:-1,ok=v>=0&&H("bnhs|"+SID+"|"+i+"|"+v+"|shs26")===it.k;if(ok){score++;per[it.t][0]++}
 });
 qs.innerHTML="";qs.style.display="none";
@@ -70,6 +70,10 @@ let ans="";ITEMS.forEach((it,i)=>{const s=document.querySelector('input[name=q'+
 const pm={};Object.keys(per).forEach(k=>pm[k]=per[k][0]);const tb=Object.keys(per).map(k=>k+": "+per[k][0]+"/"+per[k][1]).join("; ");
 const res=document.getElementById("result").firstChild,st=document.createElement("p");st.className="note";res.appendChild(st);
 if(SAVE_URL){st.textContent="Saving score…";fetch(SAVE_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({name:nm,section:gr.value+" · "+sub+" · "+sc,sectionOnly:sc,grade:gr.value,subject:sub,score:score,total:ITEMS.length,percent:pct,topics:pm,topicBreakdown:tb,answers:ans,v:2})}).then(()=>{st.innerHTML="<b style='color:var(--ok);font-size:1rem;display:inline'>✓ Score saved</b>"}).catch(()=>{st.innerHTML="<b style='color:var(--no);font-size:1rem;display:inline'>Couldn't save — please screenshot this card</b>"})}
-document.getElementById("submit").style.display="none";document.getElementById("retake").style.display="block";window.scrollTo(0,0)};
-document.getElementById("retake").onclick=()=>{gr.disabled=false;sj.disabled=false;load(SID)};
+document.getElementById("submit").style.display="none";window.scrollTo(0,0)}};
+function isDone(id){try{return localStorage.getItem("bnhs_done_"+id)==="1"}catch(e){return false}}
+function markDone(id){try{localStorage.setItem("bnhs_done_"+id,"1")}catch(e){}}
+function lockOut(){qs.innerHTML="";qs.style.display="none";document.getElementById("bar").style.display="none";document.getElementById("info").textContent="You already submitted this subject. Only one submission per subject, no retake.";window.scrollTo(0,0)}
+function chk(n,sub){if(!SAVE_URL)return Promise.resolve(false);const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);return fetch(SAVE_URL+"?action=check&name="+encodeURIComponent(n)+"&subject="+encodeURIComponent(sub),{cache:"no-store",signal:c.signal}).then(r=>r.json()).then(j=>!!(j&&j.exists)).catch(()=>false).finally(()=>clearTimeout(t))}
+
 </script></body></html>
