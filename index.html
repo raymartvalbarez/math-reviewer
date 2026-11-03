@@ -17,15 +17,26 @@ h2.sec{font-size:1.05rem;margin:22px 4px 10px;color:var(--brand)}
 .score{text-align:center;border:3px solid var(--brand)}.score b{font-size:2.4rem;display:block}.score .row{font-size:1rem;margin:3px 0}.note{font-size:.8rem;color:var(--muted);text-align:center}.err{color:var(--no);font-size:.9rem}
 table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:10px}td{padding:3px 4px;border-top:1px solid var(--line)}td:last-child{text-align:right}
 select{width:100%;font-size:1rem;padding:12px;border:2px solid #d8d7d2;border-radius:12px;font-family:inherit;background:#fff}
+.ann{background:#fff7e0;border:2px solid #e0b84a;border-radius:14px;padding:16px;margin-bottom:14px;line-height:1.5}
+.ann h2{margin:0 0 6px;font-size:1.05rem;color:#7a5200}.ann ol{margin:8px 0;padding-left:20px}.ann li{margin:4px 0}
+.cd{background:#3b4250;color:#fff;border-radius:10px;padding:10px;text-align:center;font-weight:700;margin-top:10px}
+.closed{background:var(--nobg);color:var(--no);border-radius:14px;padding:22px;text-align:center;font-weight:700;font-size:1.1rem;margin-bottom:14px}
+.remind{background:#fff7e0;border-radius:8px;padding:8px;font-weight:700;color:#7a5200}
 </style></head><body>
 <header><div class="school">Bago National High School · Roxas City</div><h1>SHS Reviewer — Bago NHS</h1><p>Grade 11 &amp; 12 · Alternative Delivery Mode</p></header>
 <main>
-<div class="card"><label class="f" for="nm">Name</label><input type="text" id="nm" autocomplete="name">
+<div class="ann" id="ann"><h2>📢 ADM Activity, Nov 3, 2026</h2><p><b>Face-to-face classes are suspended due to high heat index.</b></p>
+<ol><li>Enter your <b>name</b> and <b>section</b>.</li><li>Choose your <b>grade level</b> and <b>subject</b>.</li><li>Answer honestly, then tap <b>Submit</b>.</li></ol>
+<p><b>Proof required:</b><br>📸 a photo of yourself answering<br>📱 a screenshot of your result card<br>Send both to our GC <b>before 12:00 noon</b>.</p>
+<div class="cd" id="cd"></div></div>
+<div class="closed" id="closed" style="display:none">This reviewer closed at 12:00 noon, November 3, 2026.</div>
+<div id="app"><div class="card"><label class="f" for="nm">Name</label><input type="text" id="nm" autocomplete="name">
 <label class="f" for="gr">Grade Level</label><select id="gr"><option value="">— Choose grade level —</option><option>Grade 11</option><option>Grade 12</option></select>
 <label class="f" for="sj">Subject</label><select id="sj" disabled><option value="">— Choose grade level first —</option></select>
 <label class="f" for="sec">Section</label><input type="text" id="sec"><p class="note" id="info"></p></div>
 <div id="result"></div><div id="qs"></div>
 <div class="card" id="bar" style="display:none"><div id="msg" class="err"></div><button id="submit">Submit answers</button><button id="retake" style="display:none">Retake</button></div>
+</div>
 <p class="note">Reviewer by Sir Raymart Valbarez. When you submit, your score is sent to your teacher.<br>Take a screenshot of your result card and send it to your teacher.</p>
 </main>
 <script>
@@ -35,13 +46,17 @@ const L="ABCD",qs=document.getElementById("qs"),gr=document.getElementById("gr")
 function H(t){let x=0x811c9dc5;for(const ch of new TextEncoder().encode(t)){x=Math.imul(x^ch,0x01000193)>>>0}return x.toString(16).padStart(8,"0")}
 function esc(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
 gr.onchange=()=>{const g=gr.value;sj.innerHTML='<option value="">'+(g?'— Choose subject —':'— Choose grade level first —')+'</option>'+Object.keys(SUBJ).filter(k=>SUBJ[k].g===g).map(k=>'<option value="'+k+'">'+esc(SUBJ[k].n)+'</option>').join("");sj.disabled=!g;load("")};
-sj.onchange=()=>load(sj.value);
+sj.onchange=()=>{if(closedNow())return;load(sj.value)};
 function load(id){SID=id;ITEMS=id?SUBJ[id].items:[];document.getElementById("result").innerHTML="";document.getElementById("bar").style.display=id?"block":"none";document.getElementById("submit").style.display="block";document.getElementById("retake").style.display="none";
 document.getElementById("info").textContent=id?ITEMS.length+" items · "+new Set(ITEMS.map(x=>x.t)).size+" topics":"Choose your grade level and subject to start.";qs.style.display="";render()}
 function render(){let h="",cur="";ITEMS.forEach((it,i)=>{if(it.t!==cur){cur=it.t;h+='<h2 class="sec">'+esc(cur)+'</h2>'}
 h+='<div class="card" id="c'+i+'"><p class="q">'+(i+1)+'. '+esc(it.q)+'</p>'+it.c.map((c,j)=>'<label class="opt" id="o'+i+'_'+j+'"><input type="radio" name="q'+i+'" value="'+j+'"> <span><b>'+L[j]+'.</b> '+esc(c)+'</span></label>').join("")+'<div class="exp" id="e'+i+'"></div></div>'});qs.innerHTML=h}
 load("");
-document.getElementById("submit").onclick=()=>{const nm=document.getElementById("nm").value.trim(),sc=document.getElementById("sec").value.trim(),msg=document.getElementById("msg");
+const DEADLINE=Date.UTC(2026,10,3,4,0,0);
+function closedNow(){if(Date.now()<DEADLINE)return false;document.getElementById("app").style.display="none";document.getElementById("cd").style.display="none";document.getElementById("closed").style.display="block";qs.innerHTML="";return true}
+function tick(){if(closedNow())return;const m=Math.ceil((DEADLINE-Date.now())/60000);document.getElementById("cd").textContent="Closes at 12:00 noon today, ⏰ "+Math.floor(m/60)+"h "+(m%60)+"m left"}
+tick();setInterval(tick,15000);
+document.getElementById("submit").onclick=()=>{if(closedNow()){window.scrollTo(0,0);return}const nm=document.getElementById("nm").value.trim(),sc=document.getElementById("sec").value.trim(),msg=document.getElementById("msg");
 if(!nm||!sc||!gr.value||!SID){msg.textContent="Please enter your name, grade level, subject and section first.";window.scrollTo(0,0);return}
 let un=[];ITEMS.forEach((it,i)=>{if(!document.querySelector('input[name=q'+i+']:checked'))un.push(i+1)});
 if(un.length&&!confirm(un.length+" item(s) unanswered. Submit anyway?"))return;msg.textContent="";
@@ -50,7 +65,7 @@ let score=0,per={};ITEMS.forEach((it,i)=>{per[it.t]=per[it.t]||[0,0];per[it.t][1
 qs.innerHTML="";qs.style.display="none";
 gr.disabled=true;sj.disabled=true;
 const sub=SUBJ[SID].n,d=new Date().toLocaleString("en-PH",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Manila"}),pct=Math.round(score/ITEMS.length*100);
-document.getElementById("result").innerHTML='<div class="card score"><div class="note">SHS REVIEWER — BAGO NHS · RESULT</div><div class="row"><b style="font-size:1rem;display:inline">'+esc(sub)+'</b></div><b>'+score+' / '+ITEMS.length+'</b><div class="row">'+pct+'%</div><div class="row"><b style="font-size:1.1rem;display:inline">'+esc(nm)+'</b></div><div class="row">'+esc(gr.value)+' · Section: '+esc(sc)+'</div><div class="row">'+d+'</div><table>'+Object.keys(per).map(k=>'<tr><td>'+esc(k)+'</td><td>'+per[k][0]+' / '+per[k][1]+'</td></tr>').join("")+'</table><p class="note">Screenshot this card and send it to your teacher.</p></div>';
+document.getElementById("result").innerHTML='<div class="card score"><div class="note">SHS REVIEWER — BAGO NHS · RESULT</div><div class="row"><b style="font-size:1rem;display:inline">'+esc(sub)+'</b></div><b>'+score+' / '+ITEMS.length+'</b><div class="row">'+pct+'%</div><div class="row"><b style="font-size:1.1rem;display:inline">'+esc(nm)+'</b></div><div class="row">'+esc(gr.value)+' · Section: '+esc(sc)+'</div><div class="row">'+d+'</div><table>'+Object.keys(per).map(k=>'<tr><td>'+esc(k)+'</td><td>'+per[k][0]+' / '+per[k][1]+'</td></tr>').join("")+'</table><p class="note remind">📸 Screenshot this and send it to our GC together with your photo.</p></div>';
 let ans="";ITEMS.forEach((it,i)=>{const s=document.querySelector('input[name=q'+i+']:checked');ans+=s?L[+s.value]:"-"});
 const pm={};Object.keys(per).forEach(k=>pm[k]=per[k][0]);const tb=Object.keys(per).map(k=>k+": "+per[k][0]+"/"+per[k][1]).join("; ");
 const res=document.getElementById("result").firstChild,st=document.createElement("p");st.className="note";res.appendChild(st);
